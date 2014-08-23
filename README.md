@@ -75,6 +75,44 @@ I know what you're thinking. "This guy just slapped a sticker on a few Ruby bloc
 
 ### Reporting Progress in Stages
 
+Progress reporting can get much more exciting. Let's start by considering a progress reporter that can handle a task that happens in stages:
+
+```ruby
+class ImageProcessor
+  ...
+
+  def process!(progress_reporter)
+    auto_rotate!(progress_reporter)
+    auto_crop!(progress_reporter)
+    progress_reporter.report_complete
+  end
+
+  private
+
+  def auto_rotate!(progress_reporter)
+    progress_reporter.change_stage(:rotate)
+
+    @image_files.each_with_index do |image_file, idx|
+      auto_rotate_image(image_file)
+      progress_reporter.report_progress(idx, @image_files.size)
+    end
+
+    progress_reporter.report_stage_finished(@image_files.size, @image_files.size)
+  end
+
+  def auto_crop!(progress_reporter)
+    progress_reporter.change_stage(:crop)
+
+    @image_files.each_with_index do |image_file, idx|
+      auto_crop_image(image_file)
+      progress_reporter.report_progress(idx, @image_files.size)
+    end
+
+    progress_reporter.report_stage_finished(@image_files.size, @image_files.size)
+  end
+end
+```
+
 ### Reporting Metered Progress
 
 ## Authors
