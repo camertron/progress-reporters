@@ -110,10 +110,62 @@ class ImageProcessor
 
     progress_reporter.report_stage_finished(@image_files.size, @image_files.size)
   end
+
+  ...
 end
+
+reporter = ProgressReporters::StagedProgressReporter.new
+  .on_progress do |quantity, total, percentage, stage|
+    puts "#{quantity} of #{total} processed (#{percentage}%), stage #{stage}"
+  end
+  .on_stage_changed do |new_stage, old_stage|
+    puts "Stage changed from #{old_stage} to #{new_stage}"
+  end
+  .on_stage_finished do |quantity, total, percentage, stage|
+    puts "Stage #{stage} finished"
+  end
+  .on_complete do
+    puts 'done!'
+  end
+
+processor = ImageProcessor.new(['file1.png', 'file2.jpg'])
+processor.process!(reporter)
 ```
 
 ### Reporting Metered Progress
+
+Use the metered progress reporter to report a rate of change. In our example here, we might want to report how many images our algorithm is processing per second:
+
+```ruby
+reporter = ProgressReporters::MeteredProgressReporter.new
+  .on_progress do |quantity, total, percentage, rate|
+    puts "#{quantity} of #{total} processed (#{percentage}%) at a rate of #{rate} images per second"
+  end
+  .on_complete do
+    puts 'done!'
+  end
+
+processor = ImageProcessor.new(['file1.png', 'file2.jpg'])
+processor.process!(reporter)
+```
+
+By default, the metered progress reporter uses a moving average with a window size of 5. To set the window size:
+
+```ruby
+reporter.set_window_size(10)
+```
+
+In addition to the moving average, the metered progress reporter also supports plain ol' average:
+
+```ruby
+reporter.set_calc_type(:avg)
+```
+
+Switch back to moving average like so:
+
+```ruby
+reporter.set_calc_type(:moving_avg)
+```
 
 ## Authors
 
