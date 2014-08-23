@@ -21,15 +21,66 @@ Let's say you'd like to report the progress of processing a batch of images. You
 
 ```ruby
 class ImageProcessor
+  attr_accessor :image_files
+
   def initialize(image_files)
     @image_files = Array(image_files)
   end
 
   def process!
     @image_files.each do |image_file|
+      process_image_file(image_file)
     end
   end
-  
+
+  private
+
+  def process_image_file(image_file)
+    # do some work
+  end
 end
 ```
 
+To track the progress of your job, introduce a good ol' progress reporter:
+
+```ruby
+class ImageProcessor
+  ...
+
+  def process!(progress_reporter)
+    @image_files.each_with_index do |image_file, idx|
+      process_image_file(image_file)
+      progress_reporter.report_progress(idx, @image_files.size)
+    end
+
+    progress_reporter.report_complete
+  end
+
+  ...
+end
+
+reporter = ProgressReporters::ProgressReporter.new
+  .on_progress do |quantity, total, percentage|
+    puts "#{quantity} of #{total} processed (#{percentage}%)"
+  end
+  .on_complete do
+    puts 'done!'
+  end
+
+processor = ImageProcessor.new(['file1.png', 'file2.jpg'])
+processor.process!(reporter)
+```
+
+I know what you're thinking. "This guy just slapped a sticker on a few Ruby blocks and called them a progress reporter." But it gets better.
+
+### Reporting Progress in Stages
+
+### Reporting Metered Progress
+
+## Authors
+
+* Cameron C. Dutro: http://github.com/camertron
+
+## Running Tests
+
+`bundle exec rake` should do the trick :)
